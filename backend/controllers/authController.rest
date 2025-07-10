@@ -1,0 +1,30 @@
+### Register User Request
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "deepika",
+  "email": "deepika@gmail.com",
+  "password": "123456"
+}
+
+###
+POST http://localhost:5000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "deepika@gmail.com",
+  "password": "123456"
+}
+###
+GET  http://localhost:5000/api/auth/profile
+Content-Type: application/json
+
+
+###
+POST http://localhost:5000/api/auth/logout
+Content-Type: application/json
+
+
+
+
