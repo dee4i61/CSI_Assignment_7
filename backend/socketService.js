@@ -19,6 +19,10 @@ function getSocketIdByUserId(userId) {
   return connectedUsers.get(userId);
 }
 
+function getOnlineUsers() {
+  return Array.from(connectedUsers.keys());
+}
+
 async function sendFileToUser({ io, senderSocket, fileId, receiverId }) {
   const senderId = senderSocket.userId;
 
@@ -73,4 +77,5 @@ module.exports = {
   unregisterUser,
   sendFileToUser,
   getSocketIdByUserId,
+  getOnlineUsers,
 };

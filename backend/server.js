@@ -38,6 +38,7 @@ app.use("/uploads", express.static("uploads"));
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/files", fileRoutes);
+app.use("/api/dashboard", require("./routes/dashboard"));
 
 mongoose
   .connect(process.env.MONGO_URI)
