@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { uploadFile, getTransferHistory } from "../../services/fileService";
 import { getAllUsers } from "../../services/userService";
 import { useSelector } from "react-redux";
-import { sendFileViaSocket } from "../../utils/socketActions"; // ✅ import socket action
+import { sendFileViaSocket } from "../../utils/socketActions";
 
 const FileUploader = () => {
   const [file, setFile] = useState(null);
@@ -67,7 +67,6 @@ const FileUploader = () => {
       }
 
       const fileId = result.data.file._id;
-      console.log("✅ File ID from upload:", fileId);
 
       // ✅ Use socket utility function
       sendFileViaSocket(fileId, receiverId);

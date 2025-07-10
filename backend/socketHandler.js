@@ -31,13 +31,13 @@ module.exports = (io) => {
     registerUser(userId, socket.id);
 
     socket.on("send_file", async ({ fileId, receiverId }) => {
-      console.log(`📩 'send_file' from ${userId} to ${receiverId}`);
+      console.log("Received 'send_file' from:", userId);
+
       await sendFileToUser({
         io,
+        senderSocket: socket,
         fileId,
-        senderId: userId,
         receiverId,
-        socket,
       });
     });
 

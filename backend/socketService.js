@@ -1,78 +1,76 @@
-const fs = require("fs");
-const path = require("path");
+const connectedUsers = new Map();
 const File = require("./models/File");
 
-const connectedUsers = new Map();
-
-const registerUser = (userId, socketId) => {
+function registerUser(userId, socketId) {
   connectedUsers.set(userId, socketId);
-};
+}
 
-const unregisterUser = (socketId) => {
-  for (const [userId, sId] of connectedUsers.entries()) {
-    if (sId === socketId) {
+function unregisterUser(socketId) {
+  for (const [userId, id] of connectedUsers.entries()) {
+    if (id === socketId) {
       connectedUsers.delete(userId);
-      console.log(`🔴 User ${userId} disconnected`);
+      console.log(`❌ Disconnected user: ${userId}`);
       break;
     }
   }
-};
+}
 
-const getReceiverSocketId = (receiverId) => {
-  return connectedUsers.get(receiverId);
-};
+function getSocketIdByUserId(userId) {
+  return connectedUsers.get(userId);
+}
 
-const sendFileToUser = async ({ io, fileId, senderId, receiverId, socket }) => {
+async function sendFileToUser({ io, senderSocket, fileId, receiverId }) {
+  const senderId = senderSocket.userId;
+
   try {
-    const receiverSocketId = getReceiverSocketId(receiverId);
+    const receiverSocketId = getSocketIdByUserId(receiverId);
+    console.log("Receiver socket ID:", receiverSocketId);
+
     if (!receiverSocketId) {
-      socket.emit("error", { message: "Receiver not connected" });
+      console.warn("⚠️ Receiver is not connected.");
+      senderSocket.emit("notification", {
+        type: "error",
+        message: "Receiver not connected",
+      });
       return;
     }
 
     const file = await File.findById(fileId);
     if (!file) {
-      socket.emit("error", { message: "File not found" });
+      console.warn("⚠️ File not found");
+      senderSocket.emit("notification", {
+        type: "error",
+        message: "File not found",
+      });
       return;
     }
 
-    const filePath = path.join(__dirname, `../uploads/${file.filename}`);
-    const fileBuffer = fs.readFileSync(filePath);
-
-    io.to(receiverSocketId).emit("receive_file", {
-      fileName: file.originalname,
-      fileContent: fileBuffer,
-      senderId,
-    });
-
+    // Notify receiver
     io.to(receiverSocketId).emit("notification", {
       type: "file_received",
-      message: `📥 File from ${senderId}`,
+      message: `📥 File received from user ${senderId}`,
       fileId: file._id,
       fileName: file.originalname,
-      timestamp: new Date().toISOString(),
     });
 
-    socket.emit("notification", {
+    senderSocket.emit("notification", {
       type: "file_sent",
-      message: `📤 File sent to ${receiverId}`,
+      message: `📤 File sent to user ${receiverId}`,
       fileId: file._id,
       fileName: file.originalname,
-      timestamp: new Date().toISOString(),
     });
-
-    socket.emit("transfer_complete", { status: "success" });
-    console.log("✅ File sent successfully");
   } catch (err) {
-    console.error("❌ File send error:", err.message);
-    socket.emit("transfer_failed", { error: err.message });
+    console.error("❌ Error sending file via socket:", err.message);
+    senderSocket.emit("notification", {
+      type: "error",
+      message: "Something went wrong during file transfer",
+    });
   }
-};
+}
 
 module.exports = {
-  connectedUsers,
   registerUser,
   unregisterUser,
-  getReceiverSocketId,
   sendFileToUser,
+  getSocketIdByUserId,
 };
